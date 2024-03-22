@@ -1,7 +1,8 @@
 module sui_object::transript{
-    use sui::object::{Self, UID};
+    use sui::object::{Self, UID, ID};
     use sui::tx_context::{Self,TxContext};
     use sui::transfer;
+    use sui::event;
 
     struct TranscriptObject has key {
         id: UID,
@@ -10,7 +11,7 @@ module sui_object::transript{
         literature: u8
     }
 
-    public entry fun create_transcript_object(history: u8, math: u8, literature: u8, ctx: &mut TxContext) {
+    public entry fun create_transcript_object(_ : &TeacherCapbility ,history: u8, math: u8, literature: u8, ctx: &mut TxContext) {
         let transcript_object= TranscriptObject { 
             id: object::new(ctx),
             history,
@@ -18,9 +19,9 @@ module sui_object::transript{
             literature, 
         };
 
-        // transfer::transfer(transcript_object, tx_context::sender(ctx))
+        transfer::transfer(transcript_object, tx_context::sender(ctx))
         // transfer::freeze_object(transcript_object)
-        transfer::share_object(transcript_object)
+        // transfer::share_object(transcript_object)
     }
 
     public fun view_literature_score(transcriptobject: &TranscriptObject) : u8{
@@ -65,12 +66,18 @@ module sui_object::transript{
         }, tx_context::sender(ctx));
     }
 
-    public entry fun request_transcript(_ : &TeacherCapbility,transcipt: WarpTransciptObject, intended_address:address, ctx: &mut TxContext) {
+    public entry fun request_transcript(transcipt: WarpTransciptObject, intended_address:address, ctx: &mut TxContext) {
         let foler_object = Foler {
             id: object::new(ctx),
             transcipt,
             intended_address,
         };
+
+        event::emit(TransciptRequestEvent {
+            wrap_id: object::uid_to_inner(&foler_object.id),
+            requester: tx_context::sender(ctx),
+            intended_address
+        });
 
         transfer::transfer(foler_object, intended_address);
     } 
@@ -85,5 +92,11 @@ module sui_object::transript{
 
     struct TeacherCapbility has key {
         id: UID
+    }
+
+    struct TransciptRequestEvent has drop, copy {
+        wrap_id: ID,
+        requester: address,
+        intended_address: address,
     }
 }
