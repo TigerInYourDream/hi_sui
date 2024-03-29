@@ -231,10 +231,10 @@ module swap::alvin_swap {
                                        ctx: &mut TxContext) {
         let coin_b = coin::zero<B>(ctx);
         pay::join_vec<B>(&mut coin_b, coin_b_vec);
-        let coin_y_in = coin::split(&mut coin_b, amount, ctx);
-        let coin_x_out = swap_b_into_a(pool, coin_y_in, ctx);
+        let coin_b_in = coin::split(&mut coin_b, amount, ctx);
+        let coin_a_out = swap_b_into_a(pool, coin_b_in, ctx);
         let sender_addres = sender(ctx);
-        transfer::public_transfer(coin_x_out, sender_addres);
+        transfer::public_transfer(coin_a_out, sender_addres);
         transfer::public_transfer(coin_b, sender_addres);
     }
 
